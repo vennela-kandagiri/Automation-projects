@@ -1,0 +1,378 @@
+{
+  "name": "Medical-Image-Analysis-System",
+  "nodes": [
+    {
+      "parameters": {
+        "modelName": "models/gemini-1.5-flash-002",
+        "options": {}
+      },
+      "id": "google-gemini-vision-model",
+      "name": "Google Gemini Vision Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "position": [
+        -496,
+        192
+      ],
+      "typeVersion": 1,
+      "credentials": {
+        "googlePalmApi": {
+          "id": "YOUR_GEMINI_CREDENTIAL_ID",
+          "name": "Google Gemini API account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Medical Analysis Form').item.json['Email'] }}",
+        "subject": "Your Medical Image Analysis Results",
+        "message": "=Dear {{ $('Medical Analysis Form').item.json['Full Name'] }}, \n\nYour medical image has been analyzed using AI. Please find the results below:\n\n{{ $('AI Disease Detection').item.json.text }}\n\n{{ $('Hospital Recommendations').item.json.text }}\n\n⚠️ IMPORTANT DISCLAIMER: This is an AI analysis for informational purposes only. Please consult with qualified medical professionals for proper diagnosis and treatment.\n\nBest regards,\nAI Medical Analysis System",
+        "options": {}
+      },
+      "id": "send-results-email",
+      "name": "Send Analysis Results",
+      "type": "n8n-nodes-base.gmail",
+      "position": [
+        1200,
+        144
+      ],
+      "typeVersion": 2.1,
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "YOUR_GMAIL_CREDENTIAL_ID",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "admin@yourcompany.com",
+        "subject": "New Medical Analysis Request Processed",
+        "message": "=Hello Admin,\n\nA new medical image analysis has been completed. Patient details:\n\nPatient Name: {{ $('Medical Analysis Form').item.json['Full Name'] }}\nPatient Email: {{ $('Medical Analysis Form').item.json['Email'] }}\nCity: {{ $('Medical Analysis Form').item.json['City'] }}\nCountry: {{ $('Medical Analysis Form').item.json['Country'] }}\n\nAI Analysis: {{ $('AI Disease Detection').item.json.text }}\n\nHospital Recommendations: {{ $('Hospital Recommendations').item.json.text }}\n\nBest regards,\nAutomated Medical Analysis System",
+        "options": {}
+      },
+      "id": "notify-admin",
+      "name": "Notify Admin",
+      "type": "n8n-nodes-base.gmail",
+      "position": [
+        1200,
+        -144
+      ],
+      "typeVersion": 2.1,
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "YOUR_GMAIL_CREDENTIAL_ID",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.text }}",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "Rule 1: Maximum 100 words. Analyze this medical image and identify visible conditions or abnormalities. Output format: **Condition:** [name] **Confidence:** [high/medium/low] **Description:** [brief] **Severity:** [mild/moderate/severe] **Action:** [recommendation]. Medical image analysis: ${image_text}"
+            }
+          ]
+        }
+      },
+      "id": "ai-disease-detection",
+      "name": "AI Disease Detection",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "position": [
+        -336,
+        -96
+      ],
+      "typeVersion": 1.5
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('AI Disease Detection').item.json.text }}",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "Rule 1: Maximum 100 words. Based on the medical condition, recommend 5 hospitals in {{ $('Medical Analysis Form').item.json['City'] }}, {{ $('Medical Analysis Form').item.json['Country'] }} for treatment. Format: **Hospitals in {{ $('Medical Analysis Form').item.json['City'] }}:** 1. [Name] - [Area] - [Specialty] 2. [Name] - [Area] - [Specialty]. Condition: ${analysis_result}"
+            }
+          ]
+        }
+      },
+      "id": "hospital-recommendations",
+      "name": "Hospital Recommendations",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "position": [
+        -96,
+        -96
+      ],
+      "typeVersion": 1.5
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "binaryPropertyName": "Medical_Image",
+        "options": {}
+      },
+      "id": "extract-image-text",
+      "name": "Extract Image Text",
+      "type": "n8n-nodes-base.extractFromFile",
+      "position": [
+        -576,
+        -128
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "formTitle": "AI Medical Image Analysis",
+        "formDescription": "Upload your medical image for AI-powered analysis and hospital recommendations. ⚠️ This is for informational purposes only - always consult medical professionals.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Full Name",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Email",
+              "fieldType": "email",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Phone Number",
+              "placeholder": "+1234567890"
+            },
+            {
+              "fieldLabel": "City",
+              "placeholder": "e.g., Mumbai, New York, London",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Country",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "India"
+                  },
+                  {
+                    "option": "United States"
+                  },
+                  {
+                    "option": "United Kingdom"
+                  },
+                  {
+                    "option": "Canada"
+                  },
+                  {
+                    "option": "Australia"
+                  },
+                  {
+                    "option": "Other"
+                  }
+                ]
+              },
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Medical Image",
+              "fieldType": "file",
+              "acceptFileTypes": ".jpg,.jpeg,.png,.pdf,.bmp,.tiff",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Additional Symptoms/Notes",
+              "fieldType": "textarea",
+              "placeholder": "Describe any symptoms, pain level, duration, etc."
+            }
+          ]
+        },
+        "options": {
+          "respondWithOptions": {
+            "values": {
+              "respondWith": "text",
+              "responseBody": "Thank you {{ $json['Full Name'] }}! Your medical image is being analyzed. You will receive detailed results via email at {{ $json.Email }} shortly."
+            }
+          }
+        }
+      },
+      "id": "medical-analysis-form",
+      "name": "Medical Analysis Form",
+      "type": "n8n-nodes-base.formTrigger",
+      "position": [
+        -832,
+        0
+      ],
+      "typeVersion": 2.2,
+      "webhookId": "medical-analysis-form"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEET_ID",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Sheet1",
+          "mode": "name"
+        },
+        "columns": {
+          "value": {
+            "Full Name": "={{ $('Medical Analysis Form').item.json['Full Name'] }}",
+            "Email": "={{ $('Medical Analysis Form').item.json['Email'] }}",
+            "Phone": "={{ $('Medical Analysis Form').item.json['Phone Number'] }}",
+            "City": "={{ $('Medical Analysis Form').item.json['City'] }}",
+            "Country": "={{ $('Medical Analysis Form').item.json['Country'] }}",
+            "Image File": "={{ $('Medical Analysis Form').item.json['Medical Image'][0].filename }}",
+            "AI Analysis": "={{ $('AI Disease Detection').item.json.text }}",
+            "Hospital Recommendations": "={{ $('Hospital Recommendations').item.json.text }}",
+            "Additional Notes": "={{ $('Medical Analysis Form').item.json['Additional Symptoms/Notes'] }}",
+            "Timestamp": "={{ $now.toISOString() }}"
+          },
+          "mappingMode": "defineBelow"
+        },
+        "options": {}
+      },
+      "id": "patient-records",
+      "name": "Patient Records",
+      "type": "n8n-nodes-base.googleSheets",
+      "position": [
+        400,
+        160
+      ],
+      "typeVersion": 4.5,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "YOUR_GOOGLE_SHEETS_CREDENTIAL_ID",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-1.5-flash-002",
+        "options": {}
+      },
+      "id": "google-gemini-text-model",
+      "name": "Google Gemini Text Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "position": [
+        -200,
+        192
+      ],
+      "typeVersion": 1,
+      "credentials": {
+        "googlePalmApi": {
+          "id": "YOUR_GEMINI_CREDENTIAL_ID",
+          "name": "Google Gemini API account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Patient Records": {
+      "main": [
+        [
+          {
+            "node": "Notify Admin",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Medical Analysis Form": {
+      "main": [
+        [
+          {
+            "node": "Extract Image Text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Image Text": {
+      "main": [
+        [
+          {
+            "node": "AI Disease Detection",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Vision Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Disease Detection",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Text Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Hospital Recommendations",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Disease Detection": {
+      "main": [
+        [
+          {
+            "node": "Hospital Recommendations",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Hospital Recommendations": {
+      "main": [
+        [
+          {
+            "node": "Patient Records",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Notify Admin": {
+      "main": [
+        [
+          {
+            "node": "Send Analysis Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "tags": [
+    "medical",
+    "ai",
+    "healthcare",
+    "image-analysis"
+  ]
+}
