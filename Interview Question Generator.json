@@ -1,0 +1,202 @@
+{
+  "name": "Interview Question Generator",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "AI Interview Question Generator",
+        "formDescription": "Enter the job role and experience level to instantly generate AI-powered interview questions tailored to your profile.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Job Role",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Experience Level",
+              "fieldType": "dropdown",
+              "defaultValue": "Fresher",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "Fresher"
+                  },
+                  {
+                    "option": "Intermediate"
+                  },
+                  {
+                    "option": "Experienced"
+                  }
+                ]
+              },
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Number of Questions",
+              "fieldType": "number",
+              "defaultValue": "5"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.3,
+      "position": [
+        -368,
+        128
+      ],
+      "id": "4ab51d84-e910-4621-8a37-f7c2ea693e2c",
+      "name": "On form submission",
+      "webhookId": "0d1c37a7-a527-46fb-9467-0e8e006dcc7d"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b0edbe6f-7dbd-49e2-8367-8020bc79c307",
+              "name": "job_role",
+              "value": "={{ $json[\"Job Role\"] }}",
+              "type": "string"
+            },
+            {
+              "id": "3b9ffb50-3e45-4615-9fab-487979ec5949",
+              "name": "experience",
+              "value": "={{$json[\"Experience Level\"] }}",
+              "type": "string"
+            },
+            {
+              "id": "3586707c-ea46-4bea-be28-84e969430388",
+              "name": "num_questions",
+              "value": "={{ $json[\"Number of Questions\"] }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -96,
+        128
+      ],
+      "id": "45357fb5-7c2e-4d6f-ae0a-6b6efe3a4d0c",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash-lite",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash-lite"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=You are an expert technical interviewer.\n\nGenerate {{$json.num_questions}} interview questions for the role of {{$json.job_role}}.\n\nExperience level: {{$json.experience}}\n\nRules:\n- Questions must match the experience level\n- Include both theoretical and practical questions\n- Number each question clearly\n- Do not include answers or explanations"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1,
+      "position": [
+        144,
+        128
+      ],
+      "id": "5f2f5e35-d9f4-4de8-bc75-e14681fa3d35",
+      "name": "Message a model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "GhuEJtQosbcEIc90",
+          "name": "Google Gemini(PaLM) Api account 16"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1f324877-2111-4518-93fa-758ff808524c",
+              "name": "role",
+              "value": "={{ $json.job_role }}",
+              "type": "string"
+            },
+            {
+              "id": "7db2f17a-6b12-4762-8d51-531c6941626e",
+              "name": "experience",
+              "value": "={{ $json.experience }}",
+              "type": "string"
+            },
+            {
+              "id": "b4a880a1-7a46-414c-83a7-63a823f74403",
+              "name": "questions",
+              "value": "={{ $json.content.parts[0].text }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        528,
+        128
+      ],
+      "id": "11e9f0ae-32df-413f-975e-2ba6bba8d356",
+      "name": "Edit Fields1"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "1f1425e3-74e8-42bb-b1c5-df3a4ac7f44d",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "e0ec623080b5367443ff8a383ab920844eb7f4c4d7721d86251d61f62406a5e1"
+  },
+  "id": "ftE2v9HYdVp3voGt",
+  "tags": []
+}
