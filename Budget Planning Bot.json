@@ -1,0 +1,99 @@
+{
+  "name": "Budget Planning Bot",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -144,
+        -80
+      ],
+      "id": "9e6a5fb2-f632-45fc-b0f5-7a9cd7819c03",
+      "name": "Telegram Trigger",
+      "webhookId": "c8cf9d84-21d3-49e1-9313-917c62e874a7",
+      "credentials": {
+        "telegramApi": {
+          "id": "6Qsx7XXYIXugQSgz",
+          "name": "Telegram account 11"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const text = $json.message.text;\n\n\n// Expected format:\n// income: 40000\n// rent: 12000\n// food: 6000\n// travel: 5000\n// shopping: 4000\n// others: 2000\n\nconst lines = text.split('\\n');\nconst data = {};\n\nfor (const line of lines) {\n  const [key, value] = line.split(':');\n  if (key && value) {\n    data[key.trim().toLowerCase()] = Number(value.trim());\n  }\n}\n\nconst income = data.income || 0;\nconst rent = data.rent || 0;\nconst food = data.food || 0;\nconst travel = data.travel || 0;\nconst shopping = data.shopping || 0;\nconst others = data.others || 0;\n\nconst totalExpense = rent + food + travel + shopping + others;\nconst savings = income - totalExpense;\nconst savingsPercent = income > 0\n  ? ((savings / income) * 100).toFixed(1)\n  : 0;\n\nreturn [{\n  income,\n  totalExpense,\n  savings,\n  savingsPercent\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        176,
+        -80
+      ],
+      "id": "60b1ac28-96f3-40e8-a1fc-3f0e30521b41",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "chatId": "8376972226",
+        "text": "=💰 Budget Summary\nIncome:₹{{$json.income}} \nTotal Expenses: ₹{{$json.totalExpense}} \nSavings: ₹{{$json.savings}}\nSavings %: {{$json.savingsPercent}}%  \nTip: Try to save at least 20–30% of your income.",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        432,
+        -80
+      ],
+      "id": "dc575b4b-7454-43cb-8640-42b37e9922e1",
+      "name": "Send a text message",
+      "webhookId": "747b71ce-acb2-4634-8b7c-70a3451e15bf",
+      "credentials": {
+        "telegramApi": {
+          "id": "pKtjcy0cBBJYTGXV",
+          "name": "Telegram account 12"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "ee427507-e165-4bf5-8d99-a306f7484828",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "e0ec623080b5367443ff8a383ab920844eb7f4c4d7721d86251d61f62406a5e1"
+  },
+  "id": "FfWDqqUwkXrPv2hp",
+  "tags": []
+}
