@@ -1,0 +1,16 @@
+{
+  "name": "Enterprise Email Triage & SLA Automation",
+  "nodes": [],
+  "pinData": {},
+  "connections": {},
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "cd5e60d6-adb6-4151-9193-23de068bd0a2",
+  "meta": {
+    "instanceId": "e0ec623080b5367443ff8a383ab920844eb7f4c4d7721d86251d61f62406a5e1"
+  },
+  "id": "egHBuriQNKkcRQ7H",
+  "tags": []
+}
